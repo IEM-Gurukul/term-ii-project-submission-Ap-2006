@@ -11,6 +11,10 @@ public class HospitalManager {
     private ArrayList<Doctor> doctors;
     private ArrayList<Appointment> appointments;
 
+    private final String[] availableSlots = {
+            "10:00 AM", "11:00 AM", "12:00 PM", "02:00 PM", "03:00 PM", "04:00 PM"
+    };
+
     public HospitalManager() {
         patients = new ArrayList<>();
         doctors = new ArrayList<>();
@@ -100,6 +104,36 @@ public class HospitalManager {
         }
     }
 
+    public int getPriorityValue(String priorityType) {
+        if (priorityType.equalsIgnoreCase("Emergency")) {
+            return 1;
+        } else if (priorityType.equalsIgnoreCase("Senior Citizen")) {
+            return 2;
+        } else {
+            return 3;
+        }
+    }
+
+    public boolean isValidSlot(String slot) {
+        for (String s : availableSlots) {
+            if (s.equalsIgnoreCase(slot)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Appointment findBookedAppointmentByDoctorAndSlot(int doctorId, String slot) {
+        for (Appointment appointment : appointments) {
+            if (appointment.getDoctorId() == doctorId &&
+                    appointment.getSlot().equalsIgnoreCase(slot) &&
+                    appointment.getStatus().equalsIgnoreCase("Booked")) {
+                return appointment;
+            }
+        }
+        return null;
+    }
+
     public String bookAppointment(int appointmentId, int patientId, int doctorId, String slot) {
         Patient patient = findPatientById(patientId);
         Doctor doctor = findDoctorById(doctorId);
@@ -112,32 +146,48 @@ public class HospitalManager {
             return "Doctor not found.";
         }
 
-        for (Appointment ap : appointments) {
-            if (ap.getAppointmentId() == appointmentId) {
+        if (!isValidSlot(slot)) {
+            return "Invalid slot.";
+        }
+
+        for (Appointment appointment : appointments) {
+            if (appointment.getAppointmentId() == appointmentId) {
                 return "Appointment ID already exists.";
             }
         }
 
-        Appointment appointment = new Appointment(
-                appointmentId,
-                patient.getPatientId(),
-                patient.getName(),
-                doctor.getDoctorId(),
-                doctor.getName(),
-                slot,
-                patient.getPriorityType(),
-                "Booked"
-        );
+        Appointment existingAppointment = findBookedAppointmentByDoctorAndSlot(doctorId, slot);
 
-        appointments.add(appointment);
-        return "Appointment booked successfully.";
+        if (existingAppointment == null) {
+            Appointment newAppointment = new Appointment(
+                    appointmentId,
+                    patient.getPatientId(),
+                    patient.getName(),
+                    doctor.getDoctorId(),
+                    doctor.getName(),
+                    slot,
+                    patient.getPriorityType(),
+                    "Booked"
+            );
+            appointments.add(newAppointment);
+            return "Appointment booked successfully.";
+        }
+
+        int newPriority = getPriorityValue(patient.getPriorityType());
+        int oldPriority = getPriorityValue(existingAppointment.getPriorityType());
+
+        if (newPriority < oldPriority) {
+            return "Higher priority patient detected. Existing booking should be moved.";
+        } else {
+            return "Requested slot is already booked.";
+        }
     }
 
     public boolean cancelAppointment(int appointmentId) {
-        for (Appointment ap : appointments) {
-            if (ap.getAppointmentId() == appointmentId &&
-                    ap.getStatus().equalsIgnoreCase("Booked")) {
-                ap.setStatus("Cancelled");
+        for (Appointment appointment : appointments) {
+            if (appointment.getAppointmentId() == appointmentId &&
+                    appointment.getStatus().equalsIgnoreCase("Booked")) {
+                appointment.setStatus("Cancelled");
                 return true;
             }
         }

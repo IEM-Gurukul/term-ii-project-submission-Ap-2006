@@ -48,4 +48,55 @@ public class HospitalManager {
         doctors.add(doctor);
         return true;
     }
+
+    public Patient findPatientById(int patientId) {
+        for (Patient patient : patients) {
+            if (patient.getPatientId() == patientId) {
+                return patient;
+            }
+        }
+        return null;
+    }
+
+    public Doctor findDoctorById(int doctorId) {
+        for (Doctor doctor : doctors) {
+            if (doctor.getDoctorId() == doctorId) {
+                return doctor;
+            }
+        }
+        return null;
+    }
+
+    public void viewPatients() {
+        if (patients.isEmpty()) {
+            System.out.println("No patients found.");
+            return;
+        }
+
+        for (Patient patient : patients) {
+            System.out.println(patient);
+        }
+    }
+
+    public void viewDoctors() {
+        if (doctors.isEmpty()) {
+            System.out.println("No doctors found.");
+            return;
+        }
+
+        for (Doctor doctor : doctors) {
+            System.out.println(doctor);
+        }
+    }
+
+    public void viewAppointments() {
+        if (appointments.isEmpty()) {
+            System.out.println("No appointments found.");
+            return;
+        }
+
+        for (Appointment appointment : appointments) {
+            System.out.println(appointment);
+        }
+    }
 }

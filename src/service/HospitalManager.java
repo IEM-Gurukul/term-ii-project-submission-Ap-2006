@@ -134,6 +134,30 @@ public class HospitalManager {
         return null;
     }
 
+    public String suggestNextAvailableSlot(int doctorId, String requestedSlot) {
+        int startIndex = -1;
+
+        for (int i = 0; i < availableSlots.length; i++) {
+            if (availableSlots[i].equalsIgnoreCase(requestedSlot)) {
+                startIndex = i;
+                break;
+            }
+        }
+
+        if (startIndex == -1) {
+            return null;
+        }
+
+        for (int i = startIndex + 1; i < availableSlots.length; i++) {
+            Appointment existing = findBookedAppointmentByDoctorAndSlot(doctorId, availableSlots[i]);
+            if (existing == null) {
+                return availableSlots[i];
+            }
+        }
+
+        return null;
+    }
+
     public String bookAppointment(int appointmentId, int patientId, int doctorId, String slot) {
         Patient patient = findPatientById(patientId);
         Doctor doctor = findDoctorById(doctorId);
@@ -177,9 +201,48 @@ public class HospitalManager {
         int oldPriority = getPriorityValue(existingAppointment.getPriorityType());
 
         if (newPriority < oldPriority) {
-            return "Higher priority patient detected. Existing booking should be moved.";
+            String nextSlot = suggestNextAvailableSlot(doctorId, slot);
+
+            if (nextSlot != null) {
+                existingAppointment.setSlot(nextSlot);
+                existingAppointment.setStatus("Rescheduled");
+
+                Appointment newAppointment = new Appointment(
+                        appointmentId,
+                        patient.getPatientId(),
+                        patient.getName(),
+                        doctor.getDoctorId(),
+                        doctor.getName(),
+                        slot,
+                        patient.getPriorityType(),
+                        "Booked"
+                );
+                appointments.add(newAppointment);
+
+                return "Higher priority patient booked. Existing appointment moved to " + nextSlot + ".";
+            } else {
+                return "Higher priority patient detected, but no next slot available.";
+            }
         } else {
-            return "Requested slot is already booked.";
+            String nextSlot = suggestNextAvailableSlot(doctorId, slot);
+
+            if (nextSlot != null) {
+                Appointment newAppointment = new Appointment(
+                        appointmentId,
+                        patient.getPatientId(),
+                        patient.getName(),
+                        doctor.getDoctorId(),
+                        doctor.getName(),
+                        nextSlot,
+                        patient.getPriorityType(),
+                        "Booked"
+                );
+                appointments.add(newAppointment);
+
+                return "Requested slot unavailable. Appointment booked at next available slot: " + nextSlot;
+            } else {
+                return "Requested slot unavailable and no next available slot found.";
+            }
         }
     }
 

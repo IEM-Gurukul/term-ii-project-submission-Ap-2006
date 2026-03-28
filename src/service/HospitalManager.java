@@ -33,6 +33,18 @@ public class HospitalManager {
         return appointments;
     }
 
+    public void setPatients(ArrayList<Patient> patients) {
+        this.patients = patients;
+    }
+
+    public void setDoctors(ArrayList<Doctor> doctors) {
+        this.doctors = doctors;
+    }
+
+    public void setAppointments(ArrayList<Appointment> appointments) {
+        this.appointments = appointments;
+    }
+
     public boolean addPatient(Patient patient) {
         for (Patient p : patients) {
             if (p.getPatientId() == patient.getPatientId()) {

@@ -1,6 +1,7 @@
 import model.Doctor;
 import model.Patient;
 import service.HospitalManager;
+import util.FileHandler;
 
 import java.util.Scanner;
 
@@ -8,6 +9,11 @@ public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         HospitalManager manager = new HospitalManager();
+
+        manager.setPatients(FileHandler.loadPatients());
+        manager.setDoctors(FileHandler.loadDoctors());
+        manager.setAppointments(FileHandler.loadAppointments());
+
         int choice;
 
         do {
@@ -19,7 +25,8 @@ public class Main {
             System.out.println("5. Book Appointment");
             System.out.println("6. Cancel Appointment");
             System.out.println("7. View Appointments");
-            System.out.println("8. Exit");
+            System.out.println("8. Save Data");
+            System.out.println("9. Exit");
             System.out.print("Enter your choice: ");
 
             choice = sc.nextInt();
@@ -92,7 +99,7 @@ public class Main {
                     int bookDoctorId = sc.nextInt();
                     sc.nextLine();
 
-                    System.out.print("Enter Preferred Slot: ");
+                    System.out.print("Enter Preferred Slot (10:00 AM / 11:00 AM / 12:00 PM / 02:00 PM / 03:00 PM / 04:00 PM): ");
                     String slot = sc.nextLine();
 
                     String result = manager.bookAppointment(appointmentId, bookPatientId, bookDoctorId, slot);
@@ -115,14 +122,24 @@ public class Main {
                     break;
 
                 case 8:
-                    System.out.println("Exiting system...");
+                    FileHandler.savePatients(manager.getPatients());
+                    FileHandler.saveDoctors(manager.getDoctors());
+                    FileHandler.saveAppointments(manager.getAppointments());
+                    System.out.println("Data saved successfully.");
+                    break;
+
+                case 9:
+                    FileHandler.savePatients(manager.getPatients());
+                    FileHandler.saveDoctors(manager.getDoctors());
+                    FileHandler.saveAppointments(manager.getAppointments());
+                    System.out.println("Data saved. Exiting system...");
                     break;
 
                 default:
                     System.out.println("Invalid choice. Try again.");
             }
 
-        } while (choice != 8);
+        } while (choice != 9);
 
         sc.close();
     }
